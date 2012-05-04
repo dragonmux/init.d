@@ -1,0 +1,2 @@
+#!/bin/bash
+gcc parseTest.c bashSource.o -o parseTest
