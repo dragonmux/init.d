@@ -26,7 +26,11 @@ int main(int argc, char **argv)
 		if (ret != 0)
 			return ret;
 		printf(INFO "Copying static entries..." NEWLINE);
-		ret = evaluateRetVal(runProcess(6, 0, NULL, NULL, "cp", "--preserve=all", "--recursive", "--remove-destination", "/lib/udev/devices/*", "/dev", NULL));
+		ret = system("cp --preserve=all --recursive --remove-destination /lib/udev/devices/* /dev");
+		if (ret >= 0)
+			ret = evaluateRetVal(ret);
+		else
+			echoFailure();
 		if (ret != 0)
 			return ret;
 		printf(INFO "Setting Permissons on /dev/shm..." NEWLINE);
