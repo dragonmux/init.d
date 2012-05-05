@@ -7,11 +7,12 @@ CHMOD = chmod 0755
 STRIP = strip -s
 INSTALL = install -m755
 
-EXE = bashSource.o alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelog reboot
+O_EXTRA = bashSource.o
+EXE = alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelog reboot
 
 default: all
 
-all: $(EXE)
+all: $(O_EXTRA) $(EXE)
 
 install:
 	$(INSTALL) $(EXE) /etc/rc.d/init.d
