@@ -112,7 +112,7 @@ int sysRunProcess(uint32_t flags, char **stdOut, char *stdIn, const char **argv)
 			return 1;
 		}
 	}
-	if ((flags & RUN_PROC_PUT_STDIN) == 0)
+	if ((flags & RUN_PROC_PUT_STDIN) != 0)
 	{
 		if (pipe(poi) < 0)
 		{
