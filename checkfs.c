@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 		else
 			options = NULL;
 		printf(INFO "Checking file systems..." NEWLINE);
-		ret = runProcess(5 + (options != NULL ? 1 : 0), 0, NULL, NULL, "fsck", "-a", "-A", "-C", "-T", options, NULL);
+		ret = runProcess(5 + (options != NULL ? 1 : 0), RUN_PROC_PASS_STDOUT, NULL, NULL, "fsck", "-a", "-A", "-C", "-T", options, NULL);
 		if (ret == 0)
 			echoOk();
 		else if (ret == 1)
