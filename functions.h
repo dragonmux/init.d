@@ -70,13 +70,32 @@ extern void source(const char *file);
 
 int runProcess(uint32_t numParams, uint32_t flags, char **stdOut, char *stdIn, const char *cmd, ...)
 {
+	int ret;
 	va_list args;
 	va_start(args, cmd);
-	vaRunProcess(numParams, flags, stdOut, stdIn, cmd, args);
+	ret = vaRunProcess(numParams, flags, stdOut, stdIn, cmd, args);
 	va_end(args);
+	return ret;
 }
 
 int vaRunProcess(uint32_t numParams, uint32_t flags, char **stdOut, char *stdIn, const char *cmd, va_list args)
+{
+	uint32_t i = 0;
+	const char **cmdArgs = malloc(sizeof(char *) * (numParams + 1));
+	if (cmdArgs == NULL)
+	{
+		fprintf(stderr, FAILURE "Error allocating memory for the command line arguments of the child process" NEWLINE);
+		exit(1);
+		return 1;
+	}
+	cmdArgs[0] = cmd;
+	for (i = 1; i < numParams; i++)
+		cmdArgs[i] = va_arg(args, const char *);
+	cmdArgs[numParams] = NULL;
+	return sysRunProcess(flags, stdOut, stdIn, cmdArgs);
+}
+
+int sysRunProcess(uint32_t flags, char **stdOut, char *stdIn, const char **argv)
 {
 	pid_t pid;
 	int pio[2], ret, bytesToRead, poi[2];
@@ -120,7 +139,10 @@ int vaRunProcess(uint32_t numParams, uint32_t flags, char **stdOut, char *stdIn,
 			close(poi[1]);
 		}
 		if ((flags & RUN_PROC_NO_WAIT) == 0)
+		{
 			while (pid != waitpid(pid, &ret, 0));
+			free(argv);
+		}
 		else
 			ret = 0;
 		if ((flags & RUN_PROC_STDOUT_MASK) == 0)
@@ -132,19 +154,6 @@ int vaRunProcess(uint32_t numParams, uint32_t flags, char **stdOut, char *stdIn,
 	}
 	else
 	{
-		uint32_t i = 0;
-		char **cmdArgs = malloc(sizeof(char *) * (numParams + 1));
-		if (cmdArgs == NULL)
-		{
-			fprintf(stderr, FAILURE "Error allocating memory for the command line arguments of the child process\n");
-			exit(1);
-			return 1;
-		}
-		cmdArgs[0] = (char *)cmd;
-		for (i = 1; i < numParams; i++)
-			cmdArgs[i] = va_arg(args, char *);
-		cmdArgs[numParams] = 0;
-
 		if ((flags & RUN_PROC_PASS_STDOUT) == 0)
 		{
 			dup2(pio[1], 1);
@@ -162,9 +171,8 @@ int vaRunProcess(uint32_t numParams, uint32_t flags, char **stdOut, char *stdIn,
 			close(STDERR_FILENO);
 			setsid();
 		}
-		if (execvp(cmd, cmdArgs) < 0)
+		if (execvp(argv[0], (char **)argv) < 0)
 		{
-			free(cmdArgs);
 			fprintf(stderr, FAILURE "Error launching the child process after forking\n");
 			if ((flags & RUN_PROC_PASS_STDOUT) == 0)
 				close(pio[1]);
