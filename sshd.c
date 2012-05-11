@@ -53,6 +53,11 @@ int main(int argc, char **argv)
 			FILE *file;
 			char *fileName, *PID;
 			PID = readLine(PIDFILE, 1);
+			if (PID == NULL)
+			{
+				printf(FAILURE "loadProc() failed to work! Please ignore the apparent success of the previous line." NEWLINE);
+				return echoFailure();
+			}
 			fileName = toString("/proc/%s/oom_adj", PID);
 			file = fopen(fileName, "w");
 			fwrite("-16\n", 4, 1, file);
