@@ -596,7 +596,8 @@ int statusProc(const char *proc, const char *pidFile)
 int loadProc(const char *proc, const char *pidFile, uint32_t nice, uint32_t flags, uint32_t numParams, ...)
 {
 	int ret;
-	char *real_nice, *real_params;
+	char *real_nice;
+	const char **niceArgs;
 	if ((flags & LOAD_FORCE) == 0)
 	{
 		int ret = pidOfProc(NULL, NULL, proc, pidFile);
@@ -622,27 +623,21 @@ int loadProc(const char *proc, const char *pidFile, uint32_t nice, uint32_t flag
 	{
 		va_list args;
 		uint32_t i;
-		real_params = malloc(1);
-		real_params[0] = 0;
+		niceArgs = malloc(sizeof(char *) * (numParams + 5));
+		niceArgs++;
+		niceArgs[0] = "-n";
+		niceArgs[1] = real_nice;
+		niceArgs[2] = proc;
 		va_start(args, numParams);
 		for (i = 0; i < numParams; i++)
-		{
-			char *arg = va_arg(args, char *);
-			int currLen = strlen(real_params) + 1;
-			real_params = realloc(real_params, currLen + strlen(arg) + 1);
-			real_params[currLen] = ' ';
-			strcpy(real_params + currLen + 1, arg);
-		}
+			niceArgs[i + 3] = va_arg(args, const char *);
 		va_end(args);
+		niceArgs[i + 3] = NULL;
+		niceArgs--;
+		niceArgs[0] = "nice";
 	}
-	if (real_params[0] == 0)
-	{
-		free(real_params);
-		real_params = NULL;
-	}
-	ret = runProcess(5 + (real_params == NULL ? 0 : 1), RUN_PROC_NO_STDOUT, NULL, NULL, "nice", "-n", real_nice, proc, real_params, NULL);
+	ret = sysRunProcess(RUN_PROC_PASS_STDOUT, NULL, NULL, niceArgs);
 	free(real_nice);
-	free(real_params);
 	evaluateRetVal(ret);
 	return 0;
 }
