@@ -802,5 +802,5 @@ void readConsoleLine()
 	{
 		fread(&c, 1, 1, stdin);
 	}
-	while (c != '\r' || c != '\n');
+	while (c != '\r' && c != '\n');
 }
