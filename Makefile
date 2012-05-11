@@ -1,6 +1,13 @@
+MAKEFLAGS = -R
 GCC ?= gcc
+ifeq ($(strip $(DEBUG)), 1)
+	OPTIM_FLAGS = -ggdb
+else
+	OPTIM_FLAGS = -O2
+	DEBUG = 0
+endif
 CC = $(GCC)
-CFLAGS = -c -O2 -pthread -o $@ $<
+CFLAGS = -c $(OPTIM_FLAGS) -pthread -o $@ $<
 LFLAGS = $(filter %.o, $^) -pthread -o $@
 FLEX = flex -o $@ -8 -c $<
 CHMOD = chmod 0755
@@ -8,7 +15,7 @@ STRIP = strip -s
 INSTALL = install -m755
 
 O_EXTRA = bashSource.o
-EXE = alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelog reboot
+EXE = alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelog reboot rsyslog localnet
 
 default: all
 
@@ -23,7 +30,7 @@ clean:
 .o: functions.h
 	$(CC) $(LFLAGS)
 	$(CHMOD) $@
-	$(STRIP) $@
+	if [ $(DEBUG) -eq 0 ]; then $(STRIP) $@; fi
 
 .c.o: functions.h
 	$(CC) $(CFLAGS)
@@ -48,4 +55,7 @@ halt.o: halt.c
 consolelog.o: consolelog.c
 consolelog: consolelog.o bashSource.o
 reboot.o: reboot.c
+rsyslog.o: rsyslog.c
+localnet.o: localnet.c
+localnet: localnet.o bashSource.o
 bashSource.o: bashSource.y
