@@ -108,7 +108,7 @@ int sysRunProcess(uint32_t flags, char **stdOut, char *stdIn, const char **argv)
 	{
 		if (pipe(pio) < 0)
 		{
-			fprintf(stderr, FAILURE "Error setting up a pipe to launch a child process with\n");
+			fprintf(stderr, FAILURE "Error setting up a pipe to launch a child process with" NEWLINE);
 			return 1;
 		}
 	}
@@ -116,7 +116,7 @@ int sysRunProcess(uint32_t flags, char **stdOut, char *stdIn, const char **argv)
 	{
 		if (pipe(poi) < 0)
 		{
-			fprintf(stderr, FAILURE "Error setting up a pipe to launch a child process with\n");
+			fprintf(stderr, FAILURE "Error setting up a pipe to launch a child process with" NEWLINE);
 			return 1;
 		}
 	}
@@ -124,7 +124,7 @@ int sysRunProcess(uint32_t flags, char **stdOut, char *stdIn, const char **argv)
 	pid = fork();
 	if (pid < 0)
 	{
-		fprintf(stderr, FAILURE "Error forking this process in order to launch a child process\n");
+		fprintf(stderr, FAILURE "Error forking this process in order to launch a child process" NEWLINE);
 		return 1;
 	}
 	else if (pid > 0)
@@ -173,7 +173,7 @@ int sysRunProcess(uint32_t flags, char **stdOut, char *stdIn, const char **argv)
 		}
 		if (execvp(argv[0], (char **)argv) < 0)
 		{
-			fprintf(stderr, FAILURE "Error launching the child process after forking\n");
+			fprintf(stderr, FAILURE "Error launching the child process after forking" NEWLINE);
 			if ((flags & RUN_PROC_PASS_STDOUT) == 0)
 				close(pio[1]);
 			exit(2);
