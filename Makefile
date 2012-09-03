@@ -15,7 +15,7 @@ STRIP = strip -s
 INSTALL = install -m755
 
 O_EXTRA = bashSource.o
-EXE = alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelog reboot rsyslog localnet setclock
+EXE = alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelog reboot rsyslog localnet setclock mountfs
 
 default: all
 
@@ -60,4 +60,5 @@ localnet.o: localnet.c
 localnet: localnet.o bashSource.o
 setclock.o: setclock.c
 setclock: setclock.o bashSource.o
+mountfs.o: mountfs.c
 bashSource.o: bashSource.y
