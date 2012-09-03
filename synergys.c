@@ -1,9 +1,9 @@
 #include "functions.h"
 
 /* Loosely based on the shell scriptd from the LFS bootscripts package.
- * Written in C by Richard Mant - richard@richardmant.com
+ * Written in C by Rachel Mant - rachel@rachelmant.com
  *
- * Revision 0.1 - Richard Mant, 2011-09-27 12:05 +0001 (Tuesday, 27 Sept 2011)
+ * Revision 0.1 - Rachel Mant, 2011-09-27 12:05 +0001 (Tuesday, 27 Sept 2011)
  */
 
 int usage(char *name)

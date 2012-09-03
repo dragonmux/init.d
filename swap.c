@@ -1,9 +1,9 @@
 #include "functions.h"
 
 /* Loosely based on the swap shell script from the LFS bootscripts package.
- * Completely rewritten in C by Richard Mant - richard@richardmant.com
+ * Completely rewritten in C by Rachel Mant - rachel@rachelmant.com
  *
- * Revision 0.1 - Richard Mant, 2012-02-07 17:55 +0000 (Tuesday, 07 February 2012)
+ * Revision 0.1 - Rachel Mant, 2012-02-07 17:55 +0000 (Tuesday, 07 February 2012)
  */
 
 int usage(char *name)

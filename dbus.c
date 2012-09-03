@@ -1,9 +1,9 @@
 #include "functions.h"
 
 /* Loosely based on the dbus shell script from the LFS bootscripts package.
- * Completely rewritten in C by Richard Mant - richard@richardmant.com
+ * Completely rewritten in C by Rachel Mant - rachel@rachelmant.com
  *
- * Revision 0.1 - Richard Mant, 2011-03-07 23:25 +0000 (Monday, 07 Mar 2011)
+ * Revision 0.1 - Rachel Mant, 2011-03-07 23:25 +0000 (Monday, 07 Mar 2011)
  */
 
 #define PIDFILE "/var/run/dbus/pid"

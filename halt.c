@@ -1,9 +1,9 @@
 #include "functions.h"
 
 /* Loosely based on the halt shell script from the LFS bootscripts package.
- * Completely rewritten in C by Richard Mant - richard@richardmant.com
+ * Completely rewritten in C by Rachel Mant - rachel@rachelmant.com
  *
- * Revision 0.1 - Richard Mant, 2012-05-03 22:00 +0000 (Thursday, 03 May 2012)
+ * Revision 0.1 - Rachel Mant, 2012-05-03 22:00 +0000 (Thursday, 03 May 2012)
  */
 
 int usage(char *name)

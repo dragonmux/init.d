@@ -4,7 +4,7 @@
 #
 # Description : WPA Supplicant Control Script
 #
-# Authors     : Richard Mant - richard@richardmant.com
+# Authors     : Rachel Mant - rachel@rachelmant.com
 #
 # Version     : 00.00
 #
