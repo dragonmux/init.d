@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 		printf(INFO "Enabling Multibyte input..." NEWLINE);
 		evaluateRetVal(runProcess(2, RUN_PROC_NO_STDOUT, NULL, NULL, "kbd_mode", "-u", NULL));
 
-		printf(INFO, "Setting up keymaps..." NEWLINE);
+		printf(INFO "Setting up keymaps..." NEWLINE);
 		{
 			char *windowsKeyboard = getenv("WINDOWS_KEYBOARD");
 			/*if (windowsKeyboard == NULL || strlen(windowsKeyboard) == 0)
