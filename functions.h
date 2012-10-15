@@ -593,6 +593,27 @@ int statusProc(const char *proc, const char *pidFile)
 	return ret;
 }
 
+int reloadProc(const char *proc, const char *pidFile)
+{
+	uint32_t nPIDs, i;
+	pid_t *PIDs;
+	int ret;
+
+	ret = pidOfProc(&PIDs, &nPIDs, proc, pidFile);
+	if (nPIDs == 0 || ret > 0)
+	{
+		printf(WARNING "Process %s not running." NEWLINE, proc);
+		echoWarning();
+		return 0;
+	}
+	else
+	{
+		for (i = 0; i < nPIDs; i++)
+			ret |= (kill(PIDs[i], SIGHUP) == 0 ? 0 : 1);
+		return evaluateRetVal(ret);
+	}
+}
+
 int loadProc(const char *proc, const char *pidFile, uint32_t nice, uint32_t flags, uint32_t numParams, ...)
 {
 	int ret;

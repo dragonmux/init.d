@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	else if (CHECK_ARG(1, "reload"))
 	{
 		printf(WARNING "Reloading SSH Server..." NEWLINE);
-		//reloadProc("/usr/sbin/sshd", PIDFILE);
+		reloadProc("/usr/sbin/sshd", PIDFILE);
 	}
 	else if (CHECK_ARG(1, "restart"))
 	{
