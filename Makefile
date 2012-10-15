@@ -5,11 +5,11 @@ LFLAGS = $(filter %.o, $^) -pthread -o $@
 
 O_EXTRA = bashSource.o
 EXE = alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelog reboot rsyslog localnet setclock mountfs samba
+C_EXTRA = $(O_EXTRA:.o=.c)
 
 default: all
 
 all: $(O_EXTRA) $(EXE)
-	$(call run-cmd,rm,$(O_EXTRA:.o=.c),$(O_EXTRA:.o=.c))
 
 install: all
 	$(call run-cmd,install_bin,$(EXE),/etc/rc.d/init.d)
@@ -19,12 +19,16 @@ clean:
 
 .o:
 	$(call run-cmd,ccld,$(LFLAGS))
-#	$(call run-cmd,chmod,$@)
+	$(call run-cmd,chmod,$@)
 	$(call debug-strip,$@)
 
 %.o: %.c functons.h
 .c.o:
 	$(call run-cmd,cc,$(CFLAGS))
+
+bashSource.o: bashSource.c
+	$(call run-cmd,cc,$(CFLAGS))
+	$(call run-cmd,rm,$(C_EXTRA),$(C_EXTRA))
 
 .y.c:
 	$(call run-cmd,flex)
