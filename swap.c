@@ -14,7 +14,6 @@ int usage(char *name)
 
 int main(int argc, char **argv)
 {
-	int ret;
 	if (argc < 2)
 		return usage(argv[0]);
 
