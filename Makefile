@@ -1,6 +1,6 @@
 include Makefile.inc
 
-CFLAGS = -c $(OPTIM_FLAGS) -pthread -o $@ $<
+CFLAGS = -c $(OPTIM_FLAGS) -Wall -pedantic -pthread -std=c99 -o $@ $<
 LFLAGS = $(filter %.o, $^) -pthread -o $@
 
 O_EXTRA = bashSource.o

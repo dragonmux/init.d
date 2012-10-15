@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -11,6 +12,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/time.h>
 
 #define COLOUR(Code) "\x1B["Code"m"
 #define NORMAL COLOUR("0;39")
@@ -67,6 +69,8 @@ typedef struct _WaitInfo
 } WaitInfo;
 
 extern void source(const char *file);
+int vaRunProcess(uint32_t numParams, uint32_t flags, char **stdOut, char *stdIn, const char *cmd, va_list args);
+int sysRunProcess(uint32_t flags, char **stdOut, char *stdIn, const char **argv);
 
 int runProcess(uint32_t numParams, uint32_t flags, char **stdOut, char *stdIn, const char *cmd, ...)
 {
@@ -264,40 +268,6 @@ int getColumns()
 	ioctl(STDIN_FILENO, TIOCGWINSZ, &win);
 	return (win.ws_col == 0 ? 80 : win.ws_col);
 }
-
-/*int getColumns()
-{
-	int i, toFree = FALSE, ret = 0;
-	char *columns = getenv("COLUMNS");
-
-	if (columns == NULL || columns[0] == 0)
-	{
-		char *ret = NULL;
-		runProcess(3, RUN_PROC_RET_STDOUT, &ret, "stty", "size", NULL);
-		if (ret == NULL)
-			exit(1);
-		i = 0;
-		toFree = TRUE;
-		/* columns is the second value *//*
-		while (i < strlen(ret) && isDigit(ret[i]) == TRUE)
-			i++;
-		/* skip over the space *//*
-		i++;
-		columns = strdup(ret + i);
-		columns[strlen(columns) - 1] = 0;
-		free(ret);
-	}
-
-	if (columns[0] == '0')
-		return 80;
-
-	ret = strToInt(columns);
-
-	if (toFree == TRUE)
-		free(columns);
-
-	return ret;
-}*/
 
 int echoOk()
 {
