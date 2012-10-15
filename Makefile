@@ -1,18 +1,7 @@
-MAKEFLAGS = -R
-GCC ?= gcc
-ifeq ($(strip $(DEBUG)), 1)
-	OPTIM_FLAGS = -ggdb
-else
-	OPTIM_FLAGS = -O2
-	DEBUG = 0
-endif
-CC = $(GCC)
+include Makefile.inc
+
 CFLAGS = -c $(OPTIM_FLAGS) -pthread -o $@ $<
 LFLAGS = $(filter %.o, $^) -pthread -o $@
-FLEX = flex -o $@ -8 -c $<
-CHMOD = chmod 0755
-STRIP = strip -s
-INSTALL = install -m755
 
 O_EXTRA = bashSource.o
 EXE = alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelog reboot rsyslog localnet setclock mountfs samba
@@ -20,24 +9,25 @@ EXE = alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelo
 default: all
 
 all: $(O_EXTRA) $(EXE)
+	$(call run-cmd,rm,$(O_EXTRA:.o=.c),$(O_EXTRA:.o=.c))
 
-install:
-	$(INSTALL) $(EXE) /etc/rc.d/init.d
+install: all
+	$(call run-cmd,install_bin,$(EXE),/etc/rc.d/init.d)
 
 clean:
-	rm -f *.o *~
+	$(call run-cmd,rm,init.d,$(patsubst %,%.o,$(EXE)) $(EXE) $(O_EXTRA))
 
 .o:
-	$(CC) $(LFLAGS)
-	$(CHMOD) $@
-	if [ $(DEBUG) -eq 0 ]; then $(STRIP) $@; fi
+	$(call run-cmd,ccld,$(LFLAGS))
+#	$(call run-cmd,chmod,$@)
+	$(call debug-strip,$@)
 
 %.o: %.c functons.h
 .c.o:
-	$(CC) $(CFLAGS)
+	$(call run-cmd,cc,$(CFLAGS))
 
 .y.c:
-	$(FLEX)
+	$(call run-cmd,flex)
 
 .PHONY: default all install clean .c.o .o .y.c
 
