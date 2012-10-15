@@ -27,12 +27,13 @@ install:
 clean:
 	rm -f *.o *~
 
-.o: functions.h
+.o:
 	$(CC) $(LFLAGS)
 	$(CHMOD) $@
 	if [ $(DEBUG) -eq 0 ]; then $(STRIP) $@; fi
 
-.c.o: functions.h
+%.o: %.c functons.h
+.c.o:
 	$(CC) $(CFLAGS)
 
 .y.c:
