@@ -222,6 +222,29 @@ int sysRunProcess(uint32_t flags, char **stdOut, char *stdIn, const char **argv)
 	return 0;
 }
 
+void *rcMalloc(size_t size)
+{
+	void *ret = malloc(size);
+	if (ret == NULL)
+	{
+		printf(FAILURE "Memory allocation failure in bootscript controller!" NEWLINE);
+		exit(1);
+	}
+	return ret;
+}
+
+void *rcRealloc(void *ptr, size_t size)
+{
+	void *ret = realloc(ptr, size);
+	if (ret == NULL)
+	{
+		free(ptr);
+		printf(FAILURE "Memory reallocation failure in bootscript controller!" NEWLINE);
+		exit(1);
+	}
+	return ret;
+}
+
 char *toString(char *Fmt, ...)
 {
 	va_list args;
@@ -230,7 +253,7 @@ char *toString(char *Fmt, ...)
 	va_start(args, Fmt);
 	lenStr = vsnprintf(NULL, 0, Fmt, args) + 1;
 	va_end(args);
-	Str = malloc(lenStr);
+	Str = rcMalloc(lenStr);
 	va_start(args, Fmt);
 	vsprintf(Str, Fmt, args);
 	va_end(args);
@@ -335,6 +358,29 @@ int normalFileExists(const char *file)
 {
 	struct stat statRet;
 	if (stat(file, &statRet) == 0 && S_ISREG(statRet.st_mode))
+		return TRUE;
+	return FALSE;
+}
+
+int fileSymlink(const char *file)
+{
+	struct stat statRet;
+	if (lstat(file, &statRet) == 0 && S_ISLNK(statRet.st_mode))
+		return TRUE;
+	return FALSE;
+}
+
+int fileExecutable(const char *file)
+{
+	if (access(file, X_OK) == 0)
+		return TRUE;
+	return FALSE;
+}
+
+int dirExists(const char *dir)
+{
+	struct stat statRet;
+	if (stat(dir, &statRet) == 0 && S_ISDIR(statRet.st_mode))
 		return TRUE;
 	return FALSE;
 }

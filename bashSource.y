@@ -10,7 +10,7 @@ char *var;
 NL			\r\n
 VARIABLE	^[A-Za-z][0-9A-Za-z_]+
 WHITE		[ \t]*
-VALUE		[A-Za-z0-9_-]+
+VALUE		[/\.A-Za-z0-9_-]+
 SQVALUE		'.*'
 DQVALUE		\".*\"
 %x			VAR

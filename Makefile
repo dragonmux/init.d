@@ -4,7 +4,7 @@ CFLAGS = -c $(OPTIM_FLAGS) -Wall -pedantic -pthread -std=c99 -o $@ $<
 LFLAGS = $(filter %.o, $^) -pthread -o $@
 
 O_EXTRA = bashSource.o
-EXE = alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelog reboot rsyslog localnet setclock mountfs samba
+EXE = rc alsa apache dbus mysql synergys i18n swap sshd udev checkfs halt consolelog reboot rsyslog localnet setclock mountfs samba
 C_EXTRA = $(O_EXTRA:.o=.c)
 
 default: all
@@ -35,6 +35,8 @@ bashSource.o: bashSource.c
 
 .PHONY: default all install clean .c.o .o .y.c
 
+rc.o: rc.c
+rc: rc.o bashSource.o
 alsa.o: alsa.c
 apache.o: apache.c
 dbus.o: dbus.c
