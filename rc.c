@@ -84,6 +84,26 @@ void freeScripts(bootScripts *scripts)
 	free(scripts);
 }
 
+int scriptExists(char *level, char *type, char *script)
+{
+	dirent *scriptEnt;
+	int found = FALSE;
+	char *path = toString(RCPATH, rcBase, level);
+	DIR *pathDir = opendir(path);
+	size_t typeLen = strlen(type);
+
+	while ((scriptEnt = readdir(pathDir)) != NULL && !found)
+	{
+		if (strncmp(scriptEnt->d_name, type, typeLen) == 0 &&
+			strcmp(scriptEnt->d_name + typeLen + 2, script) == 0)
+			found = TRUE;
+	}
+
+	closedir(pathDir);
+	free(path);
+	return found;
+}
+
 int checkScript(char *script)
 {
 	if (!fileSymlink(script))
@@ -156,22 +176,14 @@ int main(int argc, char **argv)
 				int ret;
 				if (strcmp(runlevel, "0") != 0 && strcmp(runlevel, "6") != 0)
 				{
-					// XXX:Replace the following check with a call to check previous and "sysinit" folders
-					// for the existance of a file who's name starts with S and ends with scripts->paths[i] + 3.
-					// This is to cater for the numerical value potentially being different.
-					char *prevStart = toString(RCPATH "/S%s", rcBase, previous, scripts->paths[i] + 1);
-					char *sysInitStart = toString(RCPATH "/S%s", rcBase, "sysinit", scripts->paths[i] + 1);
-					if (!fileExists(prevStart) && !fileExists(sysInitStart))
+					if (!scriptExists(previous, "S", scripts->paths[i] + 3) &&
+						!scriptExists("sysinit", "S", scripts->paths[i] + 3))
 					{
 						printf(WARNING "WARNING:\n\n%s can't be executed because it was not started in the previous runlevel (%s)." NEWLINE,
 							script, previous);
-						free(sysInitStart);
-						free(prevStart);
 						free(script);
 						continue;
 					}
-					free(sysInitStart);
-					free(prevStart);
 				}
 				ret = runProcess(3, RUN_PROC_PASS_STDOUT, NULL, NULL, script, "stop", NULL);
 				if (ret != 0)
@@ -190,19 +202,9 @@ int main(int argc, char **argv)
 			char *script;
 			if (strcmp(previous, "N") != 0)
 			{
-				// XXX:Replace the following check with a call to check previous and runlevel folders
-				// for the existance of a file who's name starts with S and ends with scripts->paths[i] + 3.
-				// This is to cater for the numerical value potentially being different.
-				char *stop = toString(RCPATH "/K%s", rcBase, runlevel, scripts->paths[i] + 1);
-				char *prevStart = toString(RCPATH, "/S%s", rcBase, runlevel, scripts->paths[i] + 1);
-				if (!fileExists(prevStart) && !fileExists(stop))
-				{
-					free(prevStart);
-					free(stop);
+				if (scriptExists(previous, "S", scripts->paths[i] + 3) &&
+					!scriptExists(runlevel, "K", scripts->paths[i] + 3))
 					continue;
-				}
-				free(prevStart);
-				free(stop);
 			}
 
 			script = toString("%s/%s", rcPath, scripts->paths[i]);
