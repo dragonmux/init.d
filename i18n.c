@@ -3,7 +3,7 @@
 /* Loosely based on the i18n shell script from the LFS bootscripts package.
  * Completely rewritten in C by Rachel Mant - rachel@rachelmant.com
  *
- * Revision 0.1 - Rachel Mant, 2012-01-24 17:50 +0000 (Tuesday, 08 Mar 2011)
+ * Revision 0.1 - Rachel Mant, 2012-01-24 17:50 +0000 (Tuesday, 08 Mar 2012)
  */
 
 #define FONTTRANS	"-m %s"
