@@ -66,7 +66,7 @@ bootScripts *fetchScripts(char *level, char *type)
 		{
 			size_t idx = scripts->count++;
 			scripts->paths = rcRealloc(scripts->paths, scripts->count * sizeof(char *));
-			scripts->paths[idx] = strdup(scriptEnt->d_name);
+			scripts->paths[idx] = strdup(scriptEnt->d_name + 1);
 		}
 	}
 
@@ -170,14 +170,14 @@ int main(int argc, char **argv)
 		bootScripts *scripts = fetchScripts(runlevel, "K");
 		for (i = 0; i < scripts->count; i++)
 		{
-			char *script = toString("%s/%s", rcPath, scripts->paths[i]);
+			char *script = toString("%s/K%s", rcPath, scripts->paths[i]);
 			if (checkScript(script))
 			{
 				int ret;
 				if (strcmp(runlevel, "0") != 0 && strcmp(runlevel, "6") != 0)
 				{
-					if (!scriptExists(previous, "S", scripts->paths[i] + 3) &&
-						!scriptExists("sysinit", "S", scripts->paths[i] + 3))
+					if (!scriptExists(previous, "S", scripts->paths[i] + 2) &&
+						!scriptExists("sysinit", "S", scripts->paths[i] + 2))
 					{
 						printf(WARNING "WARNING:\n\n%s can't be executed because it was not started in the previous runlevel (%s)." NEWLINE,
 							script, previous);
@@ -202,12 +202,12 @@ int main(int argc, char **argv)
 			char *script;
 			if (strcmp(previous, "N") != 0)
 			{
-				if (scriptExists(previous, "S", scripts->paths[i] + 3) &&
-					!scriptExists(runlevel, "K", scripts->paths[i] + 3))
+				if (scriptExists(previous, "S", scripts->paths[i] + 2) &&
+					!scriptExists(runlevel, "K", scripts->paths[i] + 2))
 					continue;
 			}
 
-			script = toString("%s/%s", rcPath, scripts->paths[i]);
+			script = toString("%s/S%s", rcPath, scripts->paths[i]);
 			if (checkScript(script))
 			{
 				int ret;
