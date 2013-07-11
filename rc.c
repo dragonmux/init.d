@@ -5,6 +5,7 @@
  * Completely rewritten in C by Rachel Mant - rachel@rachelmant.com
  *
  * Revision 0.1 - Rachel Mant, 2013-07-10 17:45 +0100 (Wednesday, 10 Jul 2013)
+ * Revision 0.2 - Rachel Mant, 2013-07-11 17:11 +0100 (Thursday, 11 Jul 2013)
  */
 
 #define RCPATH "%s/rc%s.d"
