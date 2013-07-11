@@ -18,6 +18,10 @@ typedef struct bootScripts
 typedef struct dirent dirent;
 
 char *rcBase, *rcPath;
+static pthread_mutex_t consoleMutex = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
+pthread_attr_t threadAttr;
+pthread_barrier_t startBarrier, endBarrier;
+static const char *action;
 
 // TODO: Rewrite this properly!
 void ensureTTYSane()
@@ -104,7 +108,7 @@ int scriptExists(char *level, char *type, char *script)
 	return found;
 }
 
-int checkScript(char *script)
+int checkScript(const char *script)
 {
 	if (!fileSymlink(script))
 	{
@@ -121,7 +125,7 @@ int checkScript(char *script)
 	return FALSE;
 }
 
-void rcErrorMsg(char *script, int ret)
+void rcErrorMsg(const char *script, int ret)
 {
 	printf(FAILURE "FAILURE:\n\nYou should not be reading this error message.\n\n"
 		" It means that an unforceen error took place in %s, which exited with"
@@ -131,6 +135,43 @@ void rcErrorMsg(char *script, int ret)
 		" inform us at clfs-dev@cross-lfs.org.\n", script, ret);
 	printf(INFO "Press Enter to continue..." NEWLINE);
 	readConsoleLine();
+}
+
+void runScript(const char *action, const char *script)
+{
+	char *stdOut = NULL;
+	int ret = runProcess(3, RUN_PROC_RET_STDOUT, &stdOut, NULL, script, action, NULL);
+	pthread_mutex_lock(&consoleMutex);
+	fputs(stdOut, stdout);
+	if (ret != 0)
+		rcErrorMsg(script, ret);
+	pthread_mutex_unlock(&consoleMutex);
+}
+
+static void *stopScriptThread(void *pScript)
+{
+	const char *script = (const char *)pScript;
+	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+	// Wait for main() to finish spawning threads
+	pthread_barrier_wait(&startBarrier);
+	// Execute the script
+	runScript("stop", script);
+	// Re-synchronise to let main() know it can continue..
+	pthread_barrier_wait(&endBarrier);
+	return pScript;
+}
+
+static void *runScriptThread(void *pScript)
+{
+	const char *script = (const char *)pScript;
+	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+	// Wait for main() to finish spawning threads
+	pthread_barrier_wait(&startBarrier);
+	// Execute the script
+	runScript(action, script);
+	// Re-synchronise to let main() know it can continue..
+	pthread_barrier_wait(&endBarrier);
+	return pScript;
 }
 
 int main(int argc, char **argv)
@@ -164,16 +205,19 @@ int main(int argc, char **argv)
 	if (!runlevelExists(runlevel))
 		return 1;
 
+	pthread_attr_init(&threadAttr);
+	pthread_attr_setdetachstate(&threadAttr, PTHREAD_CREATE_DETACHED);
+
 	if (strcmp(previous, "N") != 0)
 	{
-		size_t i;
+		size_t i, runListLen = 0;
+		char **runList = NULL;
 		bootScripts *scripts = fetchScripts(runlevel, "K");
 		for (i = 0; i < scripts->count; i++)
 		{
 			char *script = toString("%s/K%s", rcPath, scripts->paths[i]);
 			if (checkScript(script))
 			{
-				int ret;
 				if (strcmp(runlevel, "0") != 0 && strcmp(runlevel, "6") != 0)
 				{
 					if (!scriptExists(previous, "S", scripts->paths[i] + 2) &&
@@ -185,9 +229,43 @@ int main(int argc, char **argv)
 						continue;
 					}
 				}
-				ret = runProcess(3, RUN_PROC_PASS_STDOUT, NULL, NULL, script, "stop", NULL);
-				if (ret != 0)
-					rcErrorMsg(script, ret);
+
+				if ((i + 1) < scripts->count && strncmp(scripts->paths[i], scripts->paths[i + 1], 2) == 0)
+				{
+					size_t j = runListLen++;
+					runList = rcRealloc(runList, runListLen * sizeof(char *));
+					runList[j] = strdup(script);
+				}
+				else
+				{
+					if (runListLen == 0)
+						runScript("stop", script);
+					else
+					{
+						size_t j = runListLen++;
+						runList = rcRealloc(runList, runListLen * sizeof(char *));
+						runList[j] = strdup(script);
+
+						pthread_barrier_init(&startBarrier, NULL, runListLen);
+						pthread_barrier_init(&endBarrier, NULL, runListLen + 1);
+
+						for (j = 0; j < runListLen; j++)
+						{
+							pthread_t scriptThread;
+							pthread_create(&scriptThread, &threadAttr, stopScriptThread, runList[j]);
+						}
+
+						pthread_barrier_wait(&endBarrier);
+						pthread_barrier_destroy(&startBarrier);
+						pthread_barrier_destroy(&endBarrier);
+
+						for (j = 0; j < runListLen; j++)
+							free(runList[j]);
+						free(runList);
+						runList = NULL;
+						runListLen = 0;
+					}
+				}
 			}
 			free(script);
 		}
@@ -195,8 +273,15 @@ int main(int argc, char **argv)
 	}
 
 	{
-		size_t i;
+		size_t i, runListLen = 0;
+		char **runList = NULL;
 		bootScripts *scripts = fetchScripts(runlevel, "S");
+
+		if (strcmp(runlevel, "0") == 0 || strcmp(runlevel, "6") == 0)
+			action = "stop";
+		else
+			action = "start";
+
 		for (i = 0; i < scripts->count; i++)
 		{
 			char *script;
@@ -210,18 +295,47 @@ int main(int argc, char **argv)
 			script = toString("%s/S%s", rcPath, scripts->paths[i]);
 			if (checkScript(script))
 			{
-				int ret;
-				if (strcmp(runlevel, "0") == 0 || strcmp(runlevel, "6") == 0)
-					ret = runProcess(3, RUN_PROC_PASS_STDOUT, NULL, NULL, script, "stop", NULL);
+				if ((i + 1) < scripts->count && strncmp(scripts->paths[i], scripts->paths[i + 1], 2) == 0)
+				{
+					size_t j = runListLen++;
+					runList = rcRealloc(runList, runListLen * sizeof(char *));
+					runList[j] = strdup(script);
+				}
 				else
-					ret = runProcess(3, RUN_PROC_PASS_STDOUT, NULL, NULL, script, "start", NULL);
-				if (ret != 0)
-					rcErrorMsg(script, ret);
+				{
+					if (runListLen == 0)
+						runScript(action, script);
+					else
+					{
+						size_t j = runListLen++;
+						runList = rcRealloc(runList, runListLen * sizeof(char *));
+						runList[j] = strdup(script);
+
+						pthread_barrier_init(&startBarrier, NULL, runListLen);
+						pthread_barrier_init(&endBarrier, NULL, runListLen + 1);
+
+						for (j = 0; j < runListLen; j++)
+						{
+							pthread_t scriptThread;
+							pthread_create(&scriptThread, &threadAttr, runScriptThread, runList[j]);
+						}
+
+						pthread_barrier_wait(&endBarrier);
+						pthread_barrier_destroy(&startBarrier);
+						pthread_barrier_destroy(&endBarrier);
+
+						for (j = 0; j < runListLen; j++)
+							free(runList[j]);
+						free(runList);
+						runList = NULL;
+						runListLen = 0;
+					}
+				}
 			}
+			free(script);
 		}
 		freeScripts(scripts);
 	}
 
 	return 0;
-	//return runProcess(3, RUN_PROC_PASS_STDOUT, NULL, NULL, "/etc/rc.d/init.d/rc.sh", argv[1], NULL);
 }
