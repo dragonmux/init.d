@@ -27,7 +27,7 @@ case "${1}" in
 		;;
 
 	status)
-		sysctl -a	
+		sysctl -a
 		;;
 
 	*)
